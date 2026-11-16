@@ -246,3 +246,64 @@ terraform import <RESOURCE_ADDRESS> <ID>
 can only import one resource at a time, and not resource can be imported.
 
 ## terraform refresh and refresh only mode
+
+reads the current settings from all manage remote objects and updates the terraform state to match
+
+will not modify real remote objects, but modify the terraform state.
+
+terraform refresh is deprecated, use this instead:
+    terraform apply -refresh-only -auto-approve
+
+scenario: create a script that deploy a vm on aws. you ask the engineer to terminate the server, and he terminate via the aws console
+
+Important:
+you run: 
+    terraform apply:
+        terraform will notice thath vm is missing
+        terraform will create a new vm
+        the state file is correct.
+        changes the infra to match state file
+    
+    terraform apply -refresh-only
+        terraform will notice that vm you provisioned is missing
+        with the refres-only flag that missing vm is intention
+        terraform will propose to delete the vm from the state file
+        the state file is wrong
+        changes the state file to match infra.
+
+## terraform troubleshooting
+
+4 types errors:
+    language erros: syntax error in your config files 
+    state erros: resource states has changed ffrom the expected.
+    core errors: a bug has occurred with core library
+    providers erros: api provider has changed or does not work as expected due to emerging edge cases.
+
+
+language erros: terraform fmt, terraform validate, terraform version
+state erros: terraform refresh, terraform apply, terraform -replace flag
+core errors: TF_LOG, open github issue
+providers errors: TF_LOG, open github issue
+
+## DEbugging terraform
+
+has detailed logs which can be enabled by settings the TF_LOG environment to :
+    trace
+    debug
+    infor
+    warn
+    error
+    json
+
+Logging can be enabled separately:
+    TF_LOG_CORE
+    TF_LOG_PROVIDER
+
+Choose where you want to log with: TF_LOG_PATH
+
+
+3h:05min
+
+
+
+
