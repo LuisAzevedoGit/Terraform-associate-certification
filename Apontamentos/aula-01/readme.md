@@ -1,6 +1,6 @@
 # Terraform Associate: Resumo da Aula 1 (simplificado)
 
-> **Exame:** 57 questões, 70% para passar, 1 hora. Formatos: escolha múltipla, várias respostas e preencher espaços.
+> **Exame:** 57 questões, 70% para passar, 1 hora. Formatos: escolha múltipla, várias respostas.
 
 ---
 
@@ -71,7 +71,7 @@ Idempotente significa que **executar várias vezes dá sempre o mesmo resultado*
 | | Como |
 |---|---|
 | **Detetar** | Ferramentas de compliance (AWS Config, Azure Policy); no Terraform, o **state file** guarda o estado esperado |
-| **Corrigir** | Ferramentas de compliance (remediação); comandos `terraform refresh` e `terraform plan`; correção manual (não recomendado) |
+| **Corrigir** | Ferramentas de compliance (remediação); comandos `terraform apply -refresh-only` e `terraform plan`; correção manual (não recomendado) |
 | **Prevenir** | Infraestrutura imutável; GitOps (controlo de versões do IaC) |
 
 ### Mutável vs Imutável
@@ -98,10 +98,10 @@ Usas um **repositório Git** com um processo formal de revisão e aprovação da
 - IaC open source e declarativo.
 - Ficheiros escritos em **HCL** (HashiCorp Configuration Language).
 
-**Terraform Cloud:**
+**HCP Terraform:**
 
 - Portal web unificado.
-- O plano gratuito permite até **5 utilizadores** por organização.
+- O plano gratuito permite até **500 resources** por organização.
 
 ---
 
@@ -154,7 +154,9 @@ Representação visual do grafo de dependências:
 - **Aplicações multi-tier:** dividir apps complexas em módulos isolados.
 - **Ambientes descartáveis.**
 - **Resource schedulers.**
-- **Multi-cloud:** é cloud agnostic, com um só ficheiro de configuração para vários providers.
+- **Multi-cloud:** o mesmo workflow para várias clouds.
+- **Hybrid cloud:** gere infraestrutura on-premises e cloud com a mesma linguagem (providers para VMware, OpenStack, etc.).
+- **Service-agnostic:** o Terraform não gere só infraestrutura cloud; qualquer API com provider serve (Kubernetes, GitHub, Datadog, DNS...).
 
 ---
 
@@ -175,5 +177,5 @@ Representação visual do grafo de dependências:
 5. Ciclo: `init → validate → plan → apply → destroy`.
 6. Core (Go) fala com plugins via **RPC**.
 7. `terraform graph` precisa de **GraphViz**.
-8. Terraform Cloud grátis: **5 utilizadores**.
+8. HCP Terraform grátis: até 500 managed resources.
 9. **Vault** = gestão de segredos.

@@ -1,309 +1,438 @@
-# aula3
+# Terraform Associate: Resumo da Aula 3 (simplificado)
 
-## terraform expressions
+---
 
-refer to or compute values within a configuration.
+## 1. Expressões Terraform
 
-## types and values
-a result of a expression is a value. all values have a type.
+Servem para **referenciar ou calcular valores** dentro da configuração.
 
-primitive:
-    string
-    number
-    bool
+### Tipos e valores
 
-no type:
-    null: underlying default of a provider resource.
+O resultado de uma expressão é um **valor**, e todos os valores têm um **tipo**.
 
-complex/structural/collection:
-    list: regions = ["us-east-1a", "us-east-1b"]
-    map(object) = {env = "prod",priority =3}
+| Categoria | Tipos |
+|---|---|
+| **Primitivos** | `string`, `number`, `bool` |
+| **Sem tipo** | `null` (valor por defeito de um atributo de um provider) |
+| **Complexos / coleções** | `list`, `map`, `object`, `set`, `tuple` |
 
-## string templates
+```hcl
+regions = ["us-east-1a", "us-east-1b"]       # list
+config  = { env = "prod", priority = 3 }     # map / object
+```
 
-string interpolation: use $ "hello ${var.name}"
-string directive: use %, "hello, %{ if var.name != ""} ${var.name} %{else}unnamed%{endif}!
+### String templates
 
-## operators
-very commun in programming languages
-*
-/
-%
-+
--
--x
-==
-!=
-<
->
-...
+- **Interpolação:** `${ }` → `"hello ${var.name}"`
+- **Diretivas:** `%{ }` → permitem `if` e `for` dentro de strings
 
-## conditional expressions
+```hcl
+"Hello, %{ if var.name != "" }${var.name}%{ else }unnamed%{ endif }!"
+```
 
-condition ? (if)
-true_val
-: else
+### Operadores
 
-example:
-var.a != "" ? var.a :"default-a"
+Os mesmos das linguagens de programação:
 
-basicamente esta a pergunta se a diferente de "", se for ficar var.a senao fica default-a
+| Tipo | Operadores |
+|---|---|
+| Aritméticos | `*` `/` `%` `+` `-` `-x` |
+| Igualdade | `==` `!=` |
+| Comparação | `<` `>` `<=` `>=` |
+| Lógicos | `&&` `\|\|` `!` |
 
-## for expresions
-accept as input: list, set, tuple, map or an object
+### Expressões condicionais
 
+Formato: `condição ? valor_se_verdadeiro : valor_se_falso`
+
+```hcl
+var.a != "" ? var.a : "default-a"
+```
+
+Lê-se: *se `var.a` for diferente de vazio, usa `var.a`; senão usa `"default-a"`.*
+
+### Expressões `for`
+
+Aceitam como entrada: **list, set, tuple, map ou object**.
+
+```hcl
 [for s in var.list : upper(s)]
+[for k, v in var.map : length(k) + length(v)]   # recebe chave e valor
+```
 
-[for k, v in var.map : length(k) + lenght(v)] , get key and value
+O tipo de parênteses define o resultado:
 
+| Parênteses | Devolve |
+|---|---|
+| `[ ]` | **tuple** |
+| `{ }` | **object** |
 
-return
-if:
-    [] return a tuple
-    {} return an object
+**Ordenação implícita** na conversão:
 
-implicit element ordering on conversion:
-    maps and objects - stored by key A-Z
-    sets of strings - storeb by string A-Z
-    everything else - arbitrary ordering
+- **Maps e objects:** ordenados pela chave (A-Z)
+- **Sets de strings:** ordenados pela string (A-Z)
+- **Todo o resto:** ordem arbitrária
 
-## splat expressions
-providers a shorter expression for "for" expressions, represented by a *
+### Splat expressions (`*`)
 
-example:
-[for o in var.list : o.id]
+Forma **mais curta** de escrever uma expressão `for`.
 
-var.list[*].id
+```hcl
+[for o in var.list : o.id]    # versão longa
+var.list[*].id                # versão splat
+```
 
-## dynamic blocks
-allows dynamically construct repeatable nested blocks
+### Dynamic blocks
 
-explica me com isto:
-![alt text](image.png)
+Permitem **construir dinamicamente blocos aninhados repetíveis**, em vez de os escrever um a um à mão.
 
-## versions constrains
-terraform uses semantic versioning, open standart
-major.minor.patch
-
-= 1.4.0 or just 1.4.0 | exactly this verison
-!= 1.4.0 | any except this
->= 1.2.0 | this or newer
-<= 1.2.0 | this or older
-> 1.2.0 and < 2.0.0 | range
-~> 1.4.0 | pessimistic. allows the rightmost part to increase, nothing above it.
-
-
-
-example: ~> 1.4.0  accepts 1.4.1, 1.4.2... and 1.4.9. rejects 1.5.0
-     ~> 1.4 accepts 1.5, 1.6 ... and 1.9. rejects 2.0
-
-## terraform state
-confition of cloud resources at a specific time
-
-when provision infrastructure via terraform it will create a state file named terraform.tfstate
-
-is a json data structure
-
-terraform state list - list resources in the state
-terraform state mv - move an item in the state
-state pull - pull current remote state and output to stdout
-state push
-state replace provider
-state rm
-state show
-
-## terraform state mv
-rename existin resources
-move resource into a module 
-move module into a module
-
-
-## terraform state backups
-
-terraform will take the current state and store it in a file called terraform.tfstate.backup
-
-backups cannot be disabled.
-
-
-## terraform init
-initializes your terraform project by:
-    downloading plugin dependencies
-    create .terraform directory
-    create a dependecy lock file
-
-terraform init -upgrade : upgrade all plugns to the latest version
-
-terraform init -get-plugins-false: skip plugins installation
-
-terraform init -plugins-dir=false: force plugin installation to read plugins only from target directory
-
-terraform init -lockfile=MODE: set dependency lockfile mode
-
-
-## terraaform get
-
-to download and update modules in the root module
-
-## introdution terraform code
-
-commands that improve debugging:
-
-terraform fmt - rewrites terraform configuration files to a standard format and style
-
-terraform validadte: validates syntax
-
-terraform console - interactive shell 
-
-## terraform fmt
-
-what it does:
-    fixes indent
-    syntax error
-    terraform fmt --diff, show what will change
-
-## terraform validate
-
-verify syntax and internal consistent, regardless of any provided variables or existing state.
-
-when run terraform plan or apply, validate will automatically be performe
-
-## terraform console
-
-interactive shell where you can evaluate expressions
-
-## terraform plan
-
-creates a execution plan aka terraform plan
-
-a plan:
-    readind the current state, and make sure that terraform state is up-to-date
-    comparing the current configuration to the prior state
-    proposing a set of change actions that should, if applied, make the remote objects match the configuration
-
-terraform plan does not carry out proposed changed
-
-speculative plans | savved plans
-when run terraform apply | when run terraform apply -out = FILE
-WILL OUTPUT THE DESCRIPTION OF THE EFFECT OF THE PALN BUT WITHOUT ANY INTENT TO APPLY IT | generate a saved plan  file which you can pass along to terraform apply terraform apply FILE, will act like auto-approve
-
-
-## terraform apply
-
-executes the actions proposed in the plan
-
-automatic plan mode | saved plan mode
-run terraform apply | run terraform apply FILE
-executes plan, validate and apply | same
-requires manually approve, or need a flag to auto approve -auto-approve | not required
-
-## managed resource drift
-when resources are in a different state then your expected state.
-
-resolve drift:
-replacing resources, using -replace flag
-importing resources, when add a new resource,add our actual state to the state file, with import comand
-refresh state:  when resource change or deleted, we use -refresh-only flag, to reflect the changes in our state file
-
-## replacing resource
-using replace flag:
-    terraform apply -replace="aws_instance.example[0]"
-
-when a cloud resource is degraded or damaged and you want to return the expected healthy state of the resource.
-the flag only works for a single resource at a time.
-
-before this we use terraform taint, but become deprecated.
-
-## resource addressing
-string that identifies zero or more resource instances.
-
-2 parts:
-[module path] [resource spec]   --> module.module_name[module index]
-                                -->resource_type.resource_name[instance index]
-
-example:
-resource "aws_instance" "web"{
-    #....
-    count=4
+```hcl
+variable "ingress_ports" {
+  type    = list(number)
+  default = [80, 443, 8080]
 }
-identifies the 3 instance:
-    aws_instance.web[2]
 
-## terraform import
-to import existing resources into terraform
+resource "aws_security_group" "example" {
+  name = "example"
 
-define a placeholder for your imported resourcee in configuration file:
-    resource "aws_instance" "web"{
-        #.... instance config
+  dynamic "ingress" {                      # nome do bloco a gerar
+    for_each = var.ingress_ports           # o que vai ser iterado
+    content {                              # corpo de cada bloco gerado
+      from_port   = ingress.value          # <nome_do_bloco>.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
     }
-the body is blank and fill it in importing. it will not be autofilled
+  }
+}
+```
 
-to import:
-terraform import aws_instance.example i-abc1234
+Isto equivale a escrever **3 blocos `ingress`** (um por porta). Pontos a lembrar:
 
-COMMAND:
-terraform import <RESOURCE_ADDRESS> <ID>
+- `dynamic "<nome>"` define **que tipo de bloco** é gerado.
+- `for_each` define **sobre o quê** se itera.
+- `content` define **o conteúdo** de cada bloco.
+- Dentro do `content`, o elemento atual acede-se por `<nome>.value` (e `<nome>.key`).
 
-can only import one resource at a time, and not resource can be imported.
+---
 
-## terraform refresh and refresh only mode
+## 2. Version Constraints
 
-reads the current settings from all manage remote objects and updates the terraform state to match
+O Terraform usa **versionamento semântico** (standard aberto): `MAJOR.MINOR.PATCH`
 
-will not modify real remote objects, but modify the terraform state.
+| Operador | Significado |
+|---|---|
+| `= 1.4.0` ou `1.4.0` | Exatamente esta versão |
+| `!= 1.4.0` | Qualquer uma, exceto esta |
+| `>= 1.2.0` | Esta ou mais recente |
+| `<= 1.2.0` | Esta ou mais antiga |
+| `> 1.2.0, < 2.0.0` | Intervalo |
+| `~> 1.4.0` | **Pessimista:** só deixa aumentar o dígito mais à direita |
 
-terraform refresh is deprecated, use this instead:
-    terraform apply -refresh-only -auto-approve
+**Exemplos do `~>`:**
 
-scenario: create a script that deploy a vm on aws. you ask the engineer to terminate the server, and he terminate via the aws console
+| Constraint | Aceita | Rejeita |
+|---|---|---|
+| `~> 1.4.0` | 1.4.1, 1.4.2 ... 1.4.9 | 1.5.0 |
+| `~> 1.4` | 1.5, 1.6 ... 1.9 | 2.0 |
 
-Important:
-you run: 
-    terraform apply:
-        terraform will notice thath vm is missing
-        terraform will create a new vm
-        the state file is correct.
-        changes the infra to match state file
-    
-    terraform apply -refresh-only
-        terraform will notice that vm you provisioned is missing
-        with the refres-only flag that missing vm is intention
-        terraform will propose to delete the vm from the state file
-        the state file is wrong
-        changes the state file to match infra.
+**Onde se usam as constraints:**
 
-## terraform troubleshooting
+| Onde | Exemplo | Limita a versão de... |
+|---|---|---|
+| `required_version` (bloco `terraform`) | `required_version = ">= 1.12.0"` | O **Terraform CLI** |
+| `required_providers` | `version = "~> 5.0"` | Um **provider** |
+| Bloco `module` (só registry) | `version = "~> 1.0"` | Um **módulo** |
 
-4 types errors:
-    language erros: syntax error in your config files 
-    state erros: resource states has changed ffrom the expected.
-    core errors: a bug has occurred with core library
-    providers erros: api provider has changed or does not work as expected due to emerging edge cases.
+---
 
+## 3. Terraform State
 
-language erros: terraform fmt, terraform validate, terraform version
-state erros: terraform refresh, terraform apply, terraform -replace flag
-core errors: TF_LOG, open github issue
-providers errors: TF_LOG, open github issue
+**State** = a condição dos recursos cloud **num determinado momento**.
 
-## DEbugging terraform
+- Ao provisionar, o Terraform cria o ficheiro **`terraform.tfstate`** (estrutura **JSON**).
 
-has detailed logs which can be enabled by settings the TF_LOG environment to :
-    trace
-    debug
-    infor
-    warn
-    error
-    json
+### Comandos `terraform state`
 
-Logging can be enabled separately:
-    TF_LOG_CORE
-    TF_LOG_PROVIDER
+| Comando | Função |
+|---|---|
+| `terraform state list` | Lista os recursos no state |
+| `terraform state show` | Mostra os detalhes de um recurso |
+| `terraform state mv` | Move um item dentro do state |
+| `terraform state rm` | Remove um item do state |
+| `terraform state pull` | Obtém o state remoto atual e escreve no stdout |
+| `terraform state push` | Envia um state local para o remoto |
+| `terraform state replace-provider` | Troca o provider de recursos no state |
 
-Choose where you want to log with: TF_LOG_PATH
+- `terraform show` (sem `state`) mostra o **state completo** ou um **plano guardado** (`terraform show plano.tfplan`). Com `-json` dá formato máquina.
 
+### `terraform state mv`
 
-3h:05min
+Serve para:
 
+- **Renomear** recursos existentes
+- Mover um recurso **para dentro de um módulo**
+- Mover um módulo **para dentro de outro módulo**
 
+### Refactoring por configuração: blocos `moved` e `removed`
 
+A forma **recomendada** de refatorar é por código, porque fica **documentada e revista em PR**:
 
+```hcl
+# Renomear / mover (equivale a terraform state mv)
+moved {
+  from = aws_instance.web
+  to   = aws_instance.app
+}
+
+# Remover do state SEM destruir o recurso real (equivale a terraform state rm)
+removed {
+  from = aws_instance.legacy
+
+  lifecycle {
+    destroy = false
+  }
+}
+```
+
+| Comando | Equivalente em configuração |
+|---|---|
+| `terraform state mv` | Bloco **`moved`** |
+| `terraform state rm` | Bloco **`removed`** |
+
+### Backups do state
+
+- O Terraform guarda o state anterior em **`terraform.tfstate.backup`**.
+- Os backups **não podem ser desativados**.
+
+---
+
+## 4. `terraform init`
+
+Inicializa o projeto:
+
+- **Descarrega** as dependências (providers e módulos)
+- **Cria** o diretório `.terraform`
+- **Cria** o ficheiro de lock de dependências (`.terraform.lock.hcl`)
+- **Inicializa o backend**
+
+| Opção | Função |
+|---|---|
+| `-upgrade` | Atualiza providers e módulos para a versão mais recente permitida |
+| `-plugin-dir=PATH` | Força a ler plugins **apenas** desse diretório |
+| `-lockfile=MODE` | Define o modo do lock file (ex.: `readonly`, que não pode combinar com `-upgrade`) |
+| `-backend=false` | Salta a configuração do backend |
+| `-backend-config=...` | Configuração parcial do backend |
+| `-get=false` | Salta a instalação de módulos filhos |
+| `-reconfigure` | Ignora a configuração anterior do backend, **sem migrar** o state |
+| `-migrate-state` | **Migra** o state existente para o novo backend |
+
+### `terraform get`
+
+**Descarrega e atualiza módulos** do root module.
+
+---
+
+## 5. Comandos de apoio ao código
+
+| Comando | Função |
+|---|---|
+| `terraform fmt` | Reescreve os ficheiros num **formato e estilo standard** |
+| `terraform validate` | Valida **sintaxe** e consistência interna |
+| `terraform console` | **Shell interativa** para testar expressões |
+
+- **`fmt`:** corrige indentação. Com `-diff` mostra o que vai mudar; com `-check` só verifica (dá erro se houver ficheiros por formatar, útil em CI); com `-recursive` inclui subdiretórios.
+- **`validate`:** não depende de variáveis nem do state. É executado **automaticamente** no `plan` e no `apply`.
+- **`console`:** avalia expressões interativamente (ex.: `upper("abc")`).
+
+---
+
+## 6. `terraform plan`
+
+Cria um **plano de execução**:
+
+1. Lê o state atual e garante que está atualizado
+2. Compara a configuração com o state anterior
+3. Propõe um conjunto de ações que, se aplicadas, fazem os objetos remotos corresponder à configuração
+
+> O `terraform plan` **não executa** as alterações.
+
+| Speculative plan | Saved plan |
+|---|---|
+| `terraform plan` | `terraform plan -out=FILE` |
+| Mostra o efeito do plano, **sem intenção de o aplicar** | Gera um **ficheiro de plano** que podes passar ao apply |
+| | `terraform apply FILE` age como auto-approve |
+
+### `-target`
+
+- `terraform plan -target=aws_instance.web` (e o mesmo no `apply`) limita a operação a certos recursos (e às suas dependências).
+- Usa-se **só em situações excecionais** (ex.: recuperar de um erro). Pode deixar o state inconsistente com a configuração.
+
+---
+
+## 7. `terraform apply`
+
+**Executa** as ações propostas no plano.
+
+| Automatic plan mode | Saved plan mode |
+|---|---|
+| `terraform apply` | `terraform apply FILE` |
+| Faz plan + validate + apply | Aplica o plano guardado |
+| Pede **aprovação manual**, ou usa `-auto-approve` | **Não** pede aprovação |
+
+---
+
+## 8. Managed Resource Drift
+
+**Drift:** recursos num estado diferente do esperado.
+
+| Situação | Solução |
+|---|---|
+| Recurso degradado/danificado | **Substituir** com a flag `-replace` |
+| Recurso novo, fora do Terraform | **Importar** (bloco `import` ou comando `terraform import`) |
+| Recurso alterado ou apagado fora do Terraform | **Atualizar o state** com `-refresh-only` |
+
+### Replacing resources
+
+```bash
+terraform apply -replace="aws_instance.example[0]"
+```
+
+- Usa-se quando um recurso cloud está **degradado ou danificado** e queres voltar ao estado saudável.
+- Só funciona **um recurso de cada vez**.
+- Antes usava-se `terraform taint`, que está **deprecated**.
+
+### Resource Addressing
+
+String que identifica **zero ou mais instâncias** de recursos. Tem 2 partes:
+
+```
+[module path] [resource spec]
+
+module.module_name[module index]
+resource_type.resource_name[instance index]
+```
+
+| Caso | Endereço |
+|---|---|
+| Recurso simples | `aws_instance.web` |
+| Com `count = 4` (3.ª instância) | `aws_instance.web[2]` |
+| Com `for_each` | `aws_instance.web["prod"]` |
+| Dentro de um módulo | `module.vpc.aws_subnet.main` |
+
+Com `count = 4`, as instâncias vão de `[0]` a `[3]`.
+
+### Importar recursos existentes
+
+Há **duas formas**:
+
+**1. Bloco `import` (recomendado, por configuração)**
+
+```hcl
+import {
+  to = aws_instance.web
+  id = "i-abc1234"
+}
+```
+
+```bash
+terraform plan -generate-config-out=generated.tf   # gera a configuração do recurso
+terraform apply
+```
+
+**2. Comando `terraform import` (CLI)**
+
+1. Cria um **bloco vazio** (placeholder) na configuração:
+   ```hcl
+   resource "aws_instance" "web" {
+     # corpo vazio, preenches tu à mão
+   }
+   ```
+2. Executa:
+   ```bash
+   terraform import <RESOURCE_ADDRESS> <ID>
+   terraform import aws_instance.example i-abc1234
+   ```
+
+| | `terraform import` (CLI) | Bloco `import` |
+|---|---|---|
+| Quando corre | Imediatamente | Durante `plan` / `apply` |
+| Recursos por execução | **Um** | **Vários** |
+| Gera a configuração | Não (escreves tu) | **Sim**, com `-generate-config-out` |
+| Revisão em PR | Não | **Sim** |
+
+- **Nem todos os recursos** são importáveis.
+
+### Refresh e Refresh-Only
+
+Lê as definições atuais de todos os objetos remotos e **atualiza o state** para corresponder.
+
+- **Não** altera os objetos reais, **só o state**.
+- `terraform refresh` está **deprecated**. Usa:
+
+```bash
+terraform apply -refresh-only -auto-approve
+```
+
+- Para **só ver** o que mudou, sem alterar o state: `terraform plan -refresh-only`.
+
+### Cenário importante
+
+Criaste uma VM na AWS com Terraform. Um colega termina-a **pela consola AWS**.
+
+| | `terraform apply` | `terraform apply -refresh-only` |
+|---|---|---|
+| O que deteta | A VM desapareceu | A VM desapareceu |
+| Interpretação | É um problema: a config diz que deve existir | A remoção é **intencional** |
+| Ação | **Cria uma nova VM** | Propõe **apagar a VM do state** |
+| Resultado | State correto | State "errado" (reflete a infra) |
+| Direção | Altera a **infra** para igualar o state | Altera o **state** para igualar a infra |
+
+---
+
+## 9. Troubleshooting
+
+**4 tipos de erros:**
+
+| Tipo | Causa | Como resolver |
+|---|---|---|
+| **Language** | Erro de sintaxe nos ficheiros | `terraform fmt`, `terraform validate`, `terraform version` |
+| **State** | O state dos recursos mudou do esperado | `terraform apply -refresh-only`, `terraform apply`, flag `-replace` |
+| **Core** | Bug na biblioteca core | `TF_LOG` + abrir issue no GitHub |
+| **Provider** | A API do provider mudou ou falha em casos limite | `TF_LOG` + abrir issue no GitHub |
+
+### Debugging com logs
+
+Ativa-se com a variável de ambiente **`TF_LOG`**, com os níveis:
+
+`TRACE` → `DEBUG` → `INFO` → `WARN` → `ERROR` (e `JSON` para formato JSON)
+
+| Variável | Função |
+|---|---|
+| `TF_LOG` | Ativa os logs (todos) |
+| `TF_LOG_CORE` | Logs só do **core** |
+| `TF_LOG_PROVIDER` | Logs só dos **providers** |
+| `TF_LOG_PATH` | **Ficheiro** onde guardar os logs |
+
+---
+
+## Pontos-chave para decorar
+
+1. Tipos primitivos: **string, number, bool**. `null` = sem valor.
+2. Interpolação `${}`; diretivas `%{}`.
+3. Condicional: `cond ? verdadeiro : falso`.
+4. `for` com `[]` devolve **tuple**; com `{}` devolve **object**.
+5. Splat `[*]` = atalho para `for`.
+6. **Dynamic block** = gera blocos repetidos (`dynamic` + `for_each` + `content`).
+7. `~> 1.4.0` aceita 1.4.x; `~> 1.4` aceita 1.x (≥ 1.4). `required_version` limita o **Terraform**.
+8. State = ficheiro **JSON** `terraform.tfstate`; backup em `.tfstate.backup` (não desativável).
+9. `terraform init` cria `.terraform` e o **lock file**.
+10. `fmt` formata (`-check` só verifica), `validate` valida sintaxe, `console` testa expressões.
+11. `plan` **não aplica nada**; `plan -out=FILE` gera plano guardado.
+12. `apply FILE` não pede aprovação; `apply` normal sim (ou `-auto-approve`).
+13. Drift: `-replace` (substituir), `import` (adicionar), `-refresh-only` (atualizar state).
+14. `terraform taint` e `terraform refresh` estão **deprecated**.
+15. `-refresh-only` altera **só o state**; `apply` normal altera a **infra**.
+16. Logs: `TF_LOG`, `TF_LOG_CORE`, `TF_LOG_PROVIDER`, `TF_LOG_PATH`.
+17. Refactoring por código: **`moved`** (renomear/mover), **`removed`** (tirar do state sem destruir), **`import`** (importar, vários de uma vez).
+18. `-target` só em casos excecionais.
